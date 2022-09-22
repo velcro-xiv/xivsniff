@@ -28,9 +28,9 @@ jobs:
       uses: actions/upload-artifact@v3.1.0
       with:
         name: xivsniff-win-x64.exe
-        path: ./XIVSniff/bin/Release/win-x64/publish/xivsniff.exe
+        path: XIVSniff\bin\Release\net6.0\win-x64\publish\xivsniff.exe
     - name: Upload build artifact (pdb)
       uses: actions/upload-artifact@v3.1.0
       with:
         name: xivsniff-win-x64.pdb
-        path: ./XIVSniff/bin/Release/win-x64/publish/xivsniff.pdb
+        path: XIVSniff\bin\Release\net6.0\win-x64\publish\xivsniff.pdb
