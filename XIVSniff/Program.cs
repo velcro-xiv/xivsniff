@@ -22,7 +22,7 @@ static SniffRecord CreateRecord(IPAddress sourceAddr, ushort sourcePort, IPAddre
     byte[] data)
 {
     var segmentType = BitConverter.ToUInt16(data, 0xC);
-    int? opcode = segmentType == 3 ? BitConverter.ToUInt16(data, 0x22) : null;
+    int? opcode = segmentType == 3 ? BitConverter.ToUInt16(data, 0x20) : null;
     return new SniffRecord
     {
         Timestamp = DateTimeOffset.UtcNow,
