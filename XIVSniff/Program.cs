@@ -13,21 +13,55 @@ static extern IntPtr FindWindow(string lpClassName, string? lpWindowName);
 [DllImport("user32.dll", SetLastError = true)]
 static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
 
-static void WriteRecord(TCPConnection connection, long epoch, byte[] data)
+static void PrintError(string err)
 {
-    // Print record to stdout
-    var record = new SniffRecord
+    Console.Error.WriteLine(err);
+}
+
+static SniffRecord CreateRecord(IPAddress sourceAddr, ushort sourcePort, IPAddress destAddr, ushort destPort,
+    IEnumerable<byte> data)
+{
+    return new SniffRecord
     {
         Timestamp = DateTimeOffset.UtcNow,
         Version = 1,
-        SourceAddress = new IPAddress(connection.LocalIP),
-        SourcePort = connection.LocalPort,
-        DestinationAddress = new IPAddress(connection.RemoteIP),
-        DestinationPort = connection.RemotePort,
+        SourceAddress = sourceAddr,
+        SourcePort = sourcePort,
+        DestinationAddress = destAddr,
+        DestinationPort = destPort,
         Data = data.Select(b => (int)b).ToArray(),
     };
+}
 
-    Console.WriteLine(JsonSerializer.Serialize(record));
+static void PrintRecord(SniffRecord record)
+{
+    try
+    {
+        Console.WriteLine(JsonSerializer.Serialize(record));
+    }
+    catch (Exception e)
+    {
+        PrintError("Failed to print record");
+        PrintError(e.ToString());
+    }
+}
+
+static void MessageSent(TCPConnection connection, long epoch, byte[] data)
+{
+    // Print record to stdout
+    var record = CreateRecord(new IPAddress(connection.LocalIP), connection.LocalPort,
+        new IPAddress(connection.RemoteIP),
+        connection.RemotePort, data);
+    PrintRecord(record);
+}
+
+static void MessageReceived(TCPConnection connection, long epoch, byte[] data)
+{
+    // Print record to stdout
+    var record = CreateRecord(new IPAddress(connection.RemoteIP), connection.RemotePort,
+        new IPAddress(connection.LocalIP),
+        connection.LocalPort, data);
+    PrintRecord(record);
 }
 
 // Fetch active game instance
@@ -38,7 +72,7 @@ _ = GetWindowThreadProcessId(window, out var pid);
 if (pid == 0)
 {
     // We do need the process ID
-    Console.Error.WriteLine("Failed to detect game instance");
+    PrintError("Failed to detect game instance");
     return 1;
 }
 
@@ -49,8 +83,8 @@ try
 }
 catch (Exception e)
 {
-    Console.Error.WriteLine($"Failed to retrieve game process by process ID (pid={pid})");
-    Console.Error.WriteLine(e.ToString());
+    PrintError($"Failed to retrieve game process by process ID (pid={pid})");
+    PrintError(e.ToString());
     return 1;
 }
 
@@ -60,7 +94,7 @@ try
     var fileName = proc.MainModule?.FileName;
     if (string.IsNullOrEmpty(fileName))
     {
-        Console.Error.WriteLine("Failed to retrieve game path from instance");
+        PrintError("Failed to retrieve game path from instance");
         return 1;
     }
 
@@ -68,8 +102,8 @@ try
 }
 catch (Exception e)
 {
-    Console.Error.WriteLine("Failed to access game process main module");
-    Console.Error.WriteLine(e.ToString());
+    PrintError("Failed to access game process main module");
+    PrintError(e.ToString());
     return 1;
 }
 
@@ -78,8 +112,8 @@ var monitor = new FFXIVNetworkMonitor
 {
     MonitorType = NetworkMonitorType.WinPCap,
     ProcessID = pid,
-    MessageReceivedEventHandler = WriteRecord,
-    MessageSentEventHandler = WriteRecord,
+    MessageReceivedEventHandler = MessageReceived,
+    MessageSentEventHandler = MessageSent,
     OodleImplementation = OodleImplementation.Ffxiv,
     OodlePath = gamePath,
 };
