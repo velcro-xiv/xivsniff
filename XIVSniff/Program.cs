@@ -19,12 +19,16 @@ static void PrintError(string err)
 }
 
 static SniffRecord CreateRecord(IPAddress sourceAddr, ushort sourcePort, IPAddress destAddr, ushort destPort,
-    IEnumerable<byte> data)
+    byte[] data)
 {
+    var segmentType = BitConverter.ToUInt16(data, 0xC);
+    int? opcode = segmentType == 3 ? BitConverter.ToUInt16(data, 0x22) : null;
     return new SniffRecord
     {
         Timestamp = DateTimeOffset.UtcNow,
         Version = 1,
+        Segment = segmentType,
+        Opcode = opcode,
         SourceAddress = sourceAddr,
         SourcePort = sourcePort,
         DestinationAddress = destAddr,
@@ -125,35 +129,27 @@ return 0;
 
 internal class SniffRecord
 {
-    [JsonPropertyName("t")]
-    [JsonPropertyOrder(0)]
-    public DateTimeOffset Timestamp { get; set; }
+    [JsonPropertyName("t")] public DateTimeOffset Timestamp { get; set; }
 
-    [JsonPropertyName("v")]
-    [JsonPropertyOrder(1)]
-    public int Version { get; set; }
+    [JsonPropertyName("v")] public int Version { get; set; }
+
+    [JsonPropertyName("segment")] public int Segment { get; set; }
+
+    [JsonPropertyName("opcode")] public int? Opcode { get; set; }
 
     [JsonPropertyName("src_addr")]
-    [JsonPropertyOrder(2)]
     [JsonConverter(typeof(IPAddressConverter))]
     public IPAddress? SourceAddress { get; set; }
 
-    [JsonPropertyName("src_port")]
-    [JsonPropertyOrder(3)]
-    public int SourcePort { get; set; }
+    [JsonPropertyName("src_port")] public int SourcePort { get; set; }
 
     [JsonPropertyName("dst_addr")]
-    [JsonPropertyOrder(4)]
     [JsonConverter(typeof(IPAddressConverter))]
     public IPAddress? DestinationAddress { get; set; }
 
-    [JsonPropertyName("dst_port")]
-    [JsonPropertyOrder(5)]
-    public int DestinationPort { get; set; }
+    [JsonPropertyName("dst_port")] public int DestinationPort { get; set; }
 
-    [JsonPropertyName("data")]
-    [JsonPropertyOrder(6)]
-    public int[]? Data { get; set; }
+    [JsonPropertyName("data")] public int[]? Data { get; set; }
 }
 
 internal class IPAddressConverter : JsonConverter<IPAddress>

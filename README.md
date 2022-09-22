@@ -9,6 +9,8 @@ Requires WinPcap or an equivalent driver such as [npcap](https://npcap.com/).
 Line records consist of:
 * [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) timestamp, normalized to UTC
 * Version number
+* [Segment type](https://github.com/SapphireServer/Sapphire/blob/991e0551c32728f1f4b91a88b940881f29228a48/src/common/Network/CommonNetwork.h#L134-L146)
+* Opcode (nullable, only non-null in IPC segments)
 * Source IP address
 * Source port
 * Destination IP address
