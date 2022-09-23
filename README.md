@@ -1,9 +1,22 @@
 # xivsniff
 A simple packet sniffer for FFXIV.
 Produces packets as [JSON Lines](https://jsonlines.org/) data to be piped into other programs.
-Data can also be piped to a file for future processing.
+Data can also be piped to a file for future processing. `xivsniff` is designed to be used with
+[velcro](https://github.com/velcro-xiv/velcro).
 
 Requires WinPcap or an equivalent driver such as [npcap](https://npcap.com/).
+
+## Usage
+
+### Standalone
+```zsh
+xivsniff
+```
+
+### With `velcro`
+```zsh
+xivsniff | velcro
+```
 
 ## Format
 Line records consist of:
