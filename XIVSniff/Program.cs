@@ -22,18 +22,17 @@ static SniffRecord CreateRecord(IPAddress sourceAddr, ushort sourcePort, IPAddre
     byte[] data)
 {
     var segmentType = BitConverter.ToUInt16(data, 0xC);
-    int? opcode = segmentType == 3 ? BitConverter.ToUInt16(data, 0x12) : null;
     return new SniffRecord
     {
         Timestamp = DateTimeOffset.UtcNow,
-        Version = 1,
-        Segment = segmentType,
-        Opcode = opcode,
+        Version = 2,
         SourceAddress = sourceAddr,
         SourcePort = sourcePort,
         DestinationAddress = destAddr,
         DestinationPort = destPort,
-        Data = data.Select(b => (int)b).ToArray(),
+        SegmentHeader = SegmentHeader.Read(data, 0),
+        MessageHeader = segmentType == 3 ? MessageHeader.Read(data, 0x20) : null,
+        MessageData = segmentType == 3 ? data.Skip(0x20).Select(b => (int)b).ToArray() : null,
     };
 }
 
@@ -127,15 +126,52 @@ await Task.Delay(-1);
 
 return 0;
 
+internal class MessageHeader
+{
+    [JsonPropertyName("opcode")] public ushort Opcode { get; set; }
+
+    [JsonPropertyName("server")] public ushort Server { get; set; }
+
+    [JsonPropertyName("t")] public uint Timestamp { get; set; }
+
+    public static MessageHeader Read(byte[] data, int offset)
+    {
+        return new MessageHeader
+        {
+            Opcode = BitConverter.ToUInt16(data, offset + 2),
+            Server = BitConverter.ToUInt16(data, offset + 6),
+            Timestamp = BitConverter.ToUInt32(data, offset + 8),
+        };
+    }
+}
+
+internal class SegmentHeader
+{
+    [JsonPropertyName("size")] public uint Size { get; set; }
+
+    [JsonPropertyName("source_actor")] public uint SourceActor { get; set; }
+
+    [JsonPropertyName("target_actor")] public uint TargetActor { get; set; }
+
+    [JsonPropertyName("type")] public ushort Type { get; set; }
+
+    public static SegmentHeader Read(byte[] data, int offset)
+    {
+        return new SegmentHeader
+        {
+            Size = BitConverter.ToUInt32(data, offset),
+            SourceActor = BitConverter.ToUInt32(data, offset + 4),
+            TargetActor = BitConverter.ToUInt32(data, offset + 8),
+            Type = BitConverter.ToUInt16(data, offset + 12),
+        };
+    }
+}
+
 internal class SniffRecord
 {
     [JsonPropertyName("t")] public DateTimeOffset Timestamp { get; set; }
 
     [JsonPropertyName("v")] public int Version { get; set; }
-
-    [JsonPropertyName("segment")] public int Segment { get; set; }
-
-    [JsonPropertyName("opcode")] public int? Opcode { get; set; }
 
     [JsonPropertyName("src_addr")]
     [JsonConverter(typeof(IPAddressConverter))]
@@ -149,7 +185,11 @@ internal class SniffRecord
 
     [JsonPropertyName("dst_port")] public int DestinationPort { get; set; }
 
-    [JsonPropertyName("data")] public int[]? Data { get; set; }
+    [JsonPropertyName("segment_header")] public SegmentHeader? SegmentHeader { get; set; }
+
+    [JsonPropertyName("message_header")] public MessageHeader? MessageHeader { get; set; }
+
+    [JsonPropertyName("message_data")] public int[]? MessageData { get; set; }
 }
 
 internal class IPAddressConverter : JsonConverter<IPAddress>

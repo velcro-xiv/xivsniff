@@ -2,10 +2,17 @@
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
+        <Version>0.2.0</Version>
         <TargetFramework>net6.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <AssemblyName>xivsniff</AssemblyName>
+        <Title>xivsniff</Title>
+        <Description>A simple packet sniffer for FFXIV. Produces packets as JSON Lines data to be piped into other programs.</Description>
+        <PackageProjectUrl>https://github.com/velcro-xiv/xivsniff</PackageProjectUrl>
+        <PackageLicenseUrl>https://raw.githubusercontent.com/velcro-xiv/xivsniff/main/LICENSE</PackageLicenseUrl>
+        <RepositoryUrl>https://github.com/velcro-xiv/xivsniff.git</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)'=='Release'">

@@ -4,7 +4,9 @@ Produces packets as [JSON Lines](https://jsonlines.org/) data to be piped into o
 Data can also be piped to a file for future processing. `xivsniff` is designed to be used with
 [velcro](https://github.com/velcro-xiv/velcro).
 
-Requires WinPcap or an equivalent driver such as [npcap](https://npcap.com/).
+## Requirements
+* .NET 6 runtime
+* WinPcap or an equivalent driver such as [npcap](https://npcap.com/)
 
 ## Usage
 
@@ -22,13 +24,14 @@ xivsniff | velcro
 Line records consist of:
 * [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) timestamp, normalized to UTC
 * Version number
-* [Segment type](https://github.com/SapphireServer/Sapphire/blob/991e0551c32728f1f4b91a88b940881f29228a48/src/common/Network/CommonNetwork.h#L134-L146)
-* Opcode (nullable, only non-null in IPC segments)
 * Source IP address
 * Source port
 * Destination IP address
 * Destination port
-* Packet data as a number array
+* [Segment header](https://github.com/SapphireServer/Sapphire/blob/develop/src/common/Network/CommonNetwork.h#L80-L106)
+* [Message header](https://github.com/SapphireServer/Sapphire/blob/develop/src/common/Network/CommonNetwork.h#L148-L169) (If present)
+  * This contains an additional UNIX timestamp that is left in its raw format for accuracy.
+* Message data as a number array (If present)
 
 ### Example
 ```json lines
