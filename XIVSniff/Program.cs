@@ -31,7 +31,7 @@ static SniffRecord CreateRecord(IPAddress sourceAddr, ushort sourcePort, IPAddre
         DestinationAddress = destAddr,
         DestinationPort = destPort,
         SegmentHeader = SegmentHeader.Read(data, 0),
-        MessageHeader = segmentType == 3 ? MessageHeader.Read(data, 0x20) : null,
+        MessageHeader = segmentType == 3 ? MessageHeader.Read(data, 0x10) : null,
         MessageData = segmentType == 3 ? data.Skip(0x20).Select(b => (int)b).ToArray() : null,
     };
 }
