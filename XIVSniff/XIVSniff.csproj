@@ -13,6 +13,7 @@
         <PackageLicenseUrl>https://raw.githubusercontent.com/velcro-xiv/xivsniff/main/LICENSE</PackageLicenseUrl>
         <RepositoryUrl>https://github.com/velcro-xiv/xivsniff.git</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
+        <Authors>karashiiro</Authors>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)'=='Release'">
@@ -22,6 +23,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="CommandLineParser" Version="2.9.1" />
       <PackageReference Include="Machina.FFXIV" Version="2.3.4.6" />
     </ItemGroup>
 

@@ -3,61 +3,68 @@ using System.Net;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using CommandLine;
 using Machina.FFXIV;
 using Machina.FFXIV.Oodle;
 using Machina.Infrastructure;
 
-// Fetch active game instance
-var window = FindWindow("FFXIVGAME", null);
+return await Parser.Default.ParseArguments<Options>(args)
+    .MapResult(SniffPackets, _ => Task.FromResult(1));
 
-// Returns the ID of the thread that created the window, which we don't care about
-_ = GetWindowThreadProcessId(window, out var pid);
-if (pid == 0)
+static async Task<int> SniffPackets(Options o)
 {
-    // We do need the process ID
-    PrintError("Failed to detect game instance");
-    return 1;
+    // Fetch active game instance
+    var window = FindWindow("FFXIVGAME", null);
+
+    // Returns the ID of the thread that created the window, which we don't care about
+    _ = GetWindowThreadProcessId(window, out var pid);
+    if (pid == 0)
+    {
+        // We do need the process ID
+        PrintError("Failed to detect game instance");
+        return 1;
+    }
+
+    Process proc;
+    try
+    {
+        proc = Process.GetProcessById(Convert.ToInt32(pid));
+    }
+    catch (Exception e)
+    {
+        PrintError($"Failed to retrieve game process by process ID (pid={pid})");
+        PrintError(e.ToString());
+        return 1;
+    }
+
+    string gamePath;
+    try
+    {
+        gamePath = GetGamePath(proc);
+    }
+    catch (Exception e)
+    {
+        PrintError("Failed to access game process main module");
+        PrintError(e.ToString());
+        return 1;
+    }
+
+    // Start network monitor
+    var monitor = new FFXIVNetworkMonitor
+    {
+        MonitorType = NetworkMonitorType.WinPCap,
+        ProcessID = pid,
+        MessageReceivedEventHandler = MessageReceived,
+        MessageSentEventHandler = MessageSent,
+        OodleImplementation = OodleImplementation.Ffxiv,
+        OodlePath = gamePath,
+    };
+
+    monitor.Start();
+    await Task.Delay(-1);
+
+    return 0;
 }
-
-Process proc;
-try
-{
-    proc = Process.GetProcessById(Convert.ToInt32(pid));
-}
-catch (Exception e)
-{
-    PrintError($"Failed to retrieve game process by process ID (pid={pid})");
-    PrintError(e.ToString());
-    return 1;
-}
-
-string gamePath;
-try
-{
-    gamePath = GetGamePath(proc);
-}
-catch (Exception e)
-{
-    PrintError("Failed to access game process main module");
-    PrintError(e.ToString());
-    return 1;
-}
-
-// Start network monitor
-var monitor = new FFXIVNetworkMonitor
-{
-    MonitorType = NetworkMonitorType.WinPCap,
-    ProcessID = pid,
-    MessageReceivedEventHandler = MessageReceived,
-    MessageSentEventHandler = MessageSent,
-    OodleImplementation = OodleImplementation.Ffxiv,
-    OodlePath = gamePath,
-};
-
-monitor.Start();
-await Task.Delay(-1);
-
-return 0;
 
 [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
 static extern IntPtr FindWindow(string lpClassName, string? lpWindowName);
@@ -128,6 +135,10 @@ static void MessageReceived(TCPConnection connection, long epoch, byte[] data)
         new IPAddress(connection.LocalIP),
         connection.LocalPort, data);
     PrintRecord(record);
+}
+
+internal class Options
+{
 }
 
 internal class MessageHeader
