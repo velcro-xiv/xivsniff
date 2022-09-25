@@ -1,12 +1,12 @@
 ﻿using System.Diagnostics;
 using System.Net;
-using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using CommandLine;
 using Machina.FFXIV;
 using Machina.FFXIV.Oodle;
 using Machina.Infrastructure;
+using XIVSniff;
 
 return await Parser.Default.ParseArguments<Options>(args)
     .MapResult(SniffPackets, _ => Task.FromResult(1));
@@ -14,13 +14,9 @@ return await Parser.Default.ParseArguments<Options>(args)
 static async Task<int> SniffPackets(Options o)
 {
     // Fetch active game instance
-    var window = FindWindow("FFXIVGAME", null);
-
-    // Returns the ID of the thread that created the window, which we don't care about
-    _ = GetWindowThreadProcessId(window, out var pid);
+    var pid = FFXIV.GetMainWindowProcessId();
     if (pid == 0)
     {
-        // We do need the process ID
         PrintError("Failed to detect game instance");
         return 1;
     }
@@ -40,7 +36,7 @@ static async Task<int> SniffPackets(Options o)
     string gamePath;
     try
     {
-        gamePath = GetGamePath(proc);
+        gamePath = FFXIV.GetGamePathFromProcess(proc);
     }
     catch (Exception e)
     {
@@ -66,26 +62,9 @@ static async Task<int> SniffPackets(Options o)
     return 0;
 }
 
-[DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-static extern IntPtr FindWindow(string lpClassName, string? lpWindowName);
-
-[DllImport("user32.dll", SetLastError = true)]
-static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
-
 static void PrintError(string err)
 {
     Console.Error.WriteLine(err);
-}
-
-static string GetGamePath(Process proc)
-{
-    var fileName = proc.MainModule?.FileName;
-    if (string.IsNullOrEmpty(fileName))
-    {
-        throw new InvalidOperationException("Failed to retrieve game path from instance");
-    }
-
-    return fileName;
 }
 
 static SniffRecord CreateRecord(IPAddress sourceAddr, ushort sourcePort, IPAddress destAddr, ushort destPort,
