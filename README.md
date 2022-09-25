@@ -2,7 +2,7 @@
 A simple packet sniffer for FFXIV.
 Produces packets as [JSON Lines](https://jsonlines.org/) data to be piped into other programs.
 Data can also be piped to a file for future processing. `xivsniff` is designed to be used with
-[velcro](https://github.com/velcro-xiv/velcro).
+[`velcro`](https://github.com/velcro-xiv/velcro).
 
 ## Requirements
 * .NET 6 runtime
@@ -18,6 +18,12 @@ xivsniff
 ### With `velcro`
 ```zsh
 xivsniff | velcro
+```
+
+#### Powershell
+Powershell has its own conventions distinct from `cmd` and `bash`-based shells. Because of this, pipes into typical programs require special handling. It's best to just avoid Powershell when using `velcro`. However, you can force it to work with something like this:
+```pwsh
+xivsniff | Out-String -stream | velcro
 ```
 
 ## Format
