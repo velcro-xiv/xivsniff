@@ -18,6 +18,17 @@ static void PrintError(string err)
     Console.Error.WriteLine(err);
 }
 
+static string GetGamePath(Process proc)
+{
+    var fileName = proc.MainModule?.FileName;
+    if (string.IsNullOrEmpty(fileName))
+    {
+        throw new InvalidOperationException("Failed to retrieve game path from instance");
+    }
+
+    return fileName;
+}
+
 static SniffRecord CreateRecord(IPAddress sourceAddr, ushort sourcePort, IPAddress destAddr, ushort destPort,
     byte[] data)
 {
@@ -94,14 +105,7 @@ catch (Exception e)
 string gamePath;
 try
 {
-    var fileName = proc.MainModule?.FileName;
-    if (string.IsNullOrEmpty(fileName))
-    {
-        PrintError("Failed to retrieve game path from instance");
-        return 1;
-    }
-
-    gamePath = fileName;
+    gamePath = GetGamePath(proc);
 }
 catch (Exception e)
 {
