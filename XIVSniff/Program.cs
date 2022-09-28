@@ -89,7 +89,7 @@ static void PrintRecord(SniffRecord record)
 {
     try
     {
-        Console.WriteLine(JsonSerializer.Serialize(record));
+        Console.WriteLine(JsonSerializer.Serialize(record, SniffRecordJsonContext.Default.SniffRecord));
     }
     catch (Exception e)
     {
@@ -186,9 +186,14 @@ internal class SniffRecord
     [JsonPropertyName("message_data")] public int[]? MessageData { get; set; }
 }
 
+[JsonSerializable(typeof(SniffRecord))]
+internal partial class SniffRecordJsonContext : JsonSerializerContext
+{
+}
+
 internal class IPAddressConverter : JsonConverter<IPAddress>
 {
-    public override IPAddress? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    public override IPAddress Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         return IPAddress.Parse(reader.GetString()!);
     }
