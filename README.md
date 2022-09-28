@@ -5,7 +5,6 @@ Data can also be piped to a file for future processing. `xivsniff` is designed t
 [`velcro`](https://github.com/velcro-xiv/velcro).
 
 ## Requirements
-* .NET 6 runtime
 * WinPcap or an equivalent driver such as [npcap](https://npcap.com/)
 
 ## Usage
