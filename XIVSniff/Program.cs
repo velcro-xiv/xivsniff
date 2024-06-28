@@ -52,7 +52,7 @@ static async Task<int> SniffPackets(Options o)
         ProcessID = pid,
         MessageReceivedEventHandler = MessageReceived,
         MessageSentEventHandler = MessageSent,
-        OodleImplementation = OodleImplementation.Ffxiv,
+        OodleImplementation = OodleImplementation.FfxivTcp,
         OodlePath = gamePath,
     };
 

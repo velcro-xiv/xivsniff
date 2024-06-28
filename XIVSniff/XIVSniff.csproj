@@ -24,7 +24,7 @@
 
     <ItemGroup>
       <PackageReference Include="CommandLineParser" Version="2.9.1" />
-      <PackageReference Include="Machina.FFXIV" Version="2.3.4.6" />
+      <PackageReference Include="Machina.FFXIV" Version="2.3.9.6" />
     </ItemGroup>
 
 </Project>
