@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-
-namespace XIVSniff;
+﻿namespace XIVSniff;
 
 public class FFXIV
 {
@@ -24,22 +22,5 @@ public class FFXIV
         // Returns the ID of the thread that created the window, which we don't care about
         _ = User32.GetWindowThreadProcessId(window, out var pid);
         return pid;
-    }
-
-    /// <summary>
-    /// Returns the path to the executable of the provided process object.
-    /// </summary>
-    /// <param name="proc">The process object.</param>
-    /// <returns>The path to the executable of the provided process object.</returns>
-    /// <exception cref="InvalidOperationException">The function failed to retrieve the game path from the provided process object.</exception>
-    public static string GetGamePathFromProcess(Process proc)
-    {
-        var fileName = proc.MainModule?.FileName;
-        if (string.IsNullOrEmpty(fileName))
-        {
-            throw new InvalidOperationException("Failed to retrieve game path from instance");
-        }
-
-        return fileName;
     }
 }

@@ -1,10 +1,8 @@
-﻿using System.Diagnostics;
-using System.Net;
+﻿using System.Net;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using CommandLine;
 using Machina.FFXIV;
-using Machina.FFXIV.Oodle;
 using Machina.Infrastructure;
 using XIVSniff;
 
@@ -21,30 +19,6 @@ static async Task<int> SniffPackets(Options o)
         return 1;
     }
 
-    Process proc;
-    try
-    {
-        proc = Process.GetProcessById(Convert.ToInt32(pid));
-    }
-    catch (Exception e)
-    {
-        PrintError($"Failed to retrieve game process by process ID (pid={pid})");
-        PrintError(e.ToString());
-        return 1;
-    }
-
-    string gamePath;
-    try
-    {
-        gamePath = FFXIV.GetGamePathFromProcess(proc);
-    }
-    catch (Exception e)
-    {
-        PrintError("Failed to access game process main module");
-        PrintError(e.ToString());
-        return 1;
-    }
-
     // Start network monitor
     var monitor = new FFXIVNetworkMonitor
     {
@@ -52,8 +26,7 @@ static async Task<int> SniffPackets(Options o)
         ProcessID = pid,
         MessageReceivedEventHandler = MessageReceived,
         MessageSentEventHandler = MessageSent,
-        OodleImplementation = OodleImplementation.FfxivTcp,
-        OodlePath = gamePath,
+        UseDeucalion = true,
     };
 
     monitor.Start();
